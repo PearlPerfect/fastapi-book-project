@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import OrderedDict
+from typing import OrderedDict, Optional
 
 from pydantic import BaseModel
 
@@ -50,20 +50,21 @@ class InMemoryDB:
         Returns:
             Book: Added book.
         """
-        self.books.update({book.id: book})
+        self.books[book.id] = book
+        return book  # Return the added book
 
-    def get_book(self, book_id: int) -> Book:
+    def get_book(self, book_id: int) -> Optional[Book]:
         """Gets a specific book from database.
 
         Args:
             book_id (int): Book ID.
 
         Returns:
-            Book: Book.
+            Optional[Book]: Book if found, otherwise None.
         """
-        return self.books.get(book_id)
+        return self.books.get(book_id)  # Returns None if book is not found
 
-    def update_book(self, book_id: int, data: Book) -> Book:
+    def update_book(self, book_id: int, data: Book) -> Optional[Book]:
         """Updates a specific book in database.
 
         Args:
@@ -71,10 +72,12 @@ class InMemoryDB:
             data (Book): Book data.
 
         Returns:
-            Book: Updated book.
+            Optional[Book]: Updated book if found, otherwise None.
         """
-        self.books.update({book_id: data})
-        return self.books.get(book_id)
+        if book_id not in self.books:
+            return None  # Return None if the book does not exist
+        self.books[book_id] = data
+        return self.books[book_id]
 
     def delete_book(self, book_id: int) -> None:
         """Deletes a specific book from database.
