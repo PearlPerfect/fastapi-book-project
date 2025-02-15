@@ -1,7 +1,6 @@
 from typing import OrderedDict
 
-
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 from api.db.schemas import Book, Genre, InMemoryDB
@@ -37,14 +36,10 @@ db.books = {
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     db.add_book(book)
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=book.model_dump()
-    )
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=book.model_dump())
 
 
-@router.get(
-    "/", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK
-)
+@router.get("/", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK)
 async def get_books() -> OrderedDict[int, Book]:
     return db.get_books()
 
@@ -52,14 +47,16 @@ async def get_books() -> OrderedDict[int, Book]:
 @router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
 async def get_book(book_id: int) -> Book:
     book = db.get_book(book_id)
-    if not book:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Book not found"
+    if book is None:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": "Book not found"},
         )
     return JSONResponse(
-        status_code=status.HTTP_200_OK, content=book.model_dump()
+        status_code=status.HTTP_200_OK,
+        content=book.model_dump(),
     )
-    
+
 
 @router.put("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
 async def update_book(book_id: int, book: Book) -> Book:
@@ -73,3 +70,10 @@ async def update_book(book_id: int, book: Book) -> Book:
 async def delete_book(book_id: int) -> None:
     db.delete_book(book_id)
     return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+
+
+@router.get("/test", status_code=status.HTTP_200_OK)
+async def test() -> None:
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content={"message": "Hello, World!"}
+    )
